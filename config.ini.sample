@@ -1,0 +1,15 @@
+<?php
+
+############
+# Settings #
+############
+
+// Database driven stuff
+$dbname = "your database";
+$dbuser = "username";
+$dbpass = "password";
+
+
+
+
+?>
