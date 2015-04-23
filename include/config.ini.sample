@@ -1,0 +1,24 @@
+<?php
+
+############
+# Settings #
+############
+
+// Database driven stuff
+$dbname = "YOUR_DB_HERE";
+$dbuser = "USERNAME";
+$dbpass = "PASS";
+
+// Genome Info
+$genome_root = "/usr/local/lib/Genome";
+$poly_root = "/usr/local/polymerase";
+$gene_location = "/usr/local/polymerase/gene";
+
+// Email Information
+// Email_to needs to be an array of contacts
+$email_to = ['recipeint email','recipient email 2'];
+$email_subject = 'Your Daily Parser Report';
+$email_from_address = 'example@example.com';
+$smtp = 'smtp.something.net';
+$smtp_port = 'number';
+?>

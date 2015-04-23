@@ -1,0 +1,445 @@
+<?php
+/**
+ *
+ *
+ */
+class Agency {
+
+		private $id = 0;
+		private $name = '';
+		private $parser_id = 0;
+		private $parser_args = '';
+		private $location = [
+			'address' => '',
+			'city' => '',
+			'state' => '',
+      'zip' => 0,
+      'country' => '',
+			'iso_code' => '',
+			'lat' => 0,
+			'lon' => 0
+			];
+		private $account_state = '';
+		private $trial_expiration = 0;
+		private $subscription_id = 0;
+		private $alerts = [];
+		private $last_alert_ts = 0;
+		private $suggested_parsers = [];
+
+		// Constructor
+		function __construct($id,$name,$parser_id,$parser_args,$address,$city,$state,$zip,$country,$lat,$lon,$account_state,$trial_expiration,$subscription_id) {
+
+			$this->id = $id;
+			$this->name = $name;
+			$this->parser_id = $parser_id;
+			$this->parser_args = $parser_args;
+			$this->location = [
+
+				'address' => $address,
+				'city' => $city,
+				'state' => $state,
+				'zip' => $zip,
+				'country' => $country,
+				'lat' => $lat,
+				'lon' => $lon,
+			];
+
+			$this->account_state = $account_state;
+			$this->trial_expiration = $trial_expiration;
+			$this->subscription_id = $subscription_id;
+			
+			$this->set_iso_code($country);
+		}
+
+		public function save_alert($alert){
+
+			$this->alerts[] = $alert;
+		}
+
+		function save_suggested_parser($parser, $score, $tested_alert_string, $average_success){
+
+			$this->suggested_parsers[$parser] = [
+
+				"score" => $score,
+				"average_success" => $average_success,
+				"tested_alerts" => $tested_alert_string,
+			];
+		}
+
+		// Getters
+		function get_id(){
+
+			return $this->id;
+		}
+
+		function get_name(){
+
+			return $this->name;
+		}
+
+		function get_parser_id(){
+
+			return $this->parser_id;
+		}
+
+		function get_parser_args(){
+
+			return $this->parser_args;
+		}
+
+		function get_city(){
+
+			return $this->location['city'];
+		}
+
+		function get_state(){
+
+			return $this->location['state'];
+		}
+
+		function get_zip(){
+
+			return $this->location['zip'];
+		}
+
+		function get_iso_code(){
+
+			return $this->location['iso_code'];
+		}
+
+		function get_lat(){
+			
+			return $this->location['lat'];
+		}
+
+		function get_lon(){
+
+			return $this->location['lon'];
+		}
+
+		function get_account_state(){
+
+			return $this->account_state;
+		}
+
+		function get_trial_expiration(){
+
+			return $this->trial_expiration;
+		}
+
+		function get_subscription_id(){
+
+			return $this->subscription_id;
+		}
+
+		function get_alerts(){
+
+			return $this->alerts;
+    }
+
+		function get_suggested_parsers(){
+
+      return $this->suggested_parsers;
+		}
+
+		function get_alerts_to_string(){
+
+			$str = '';
+			
+			foreach ($this->alerts as $alert){
+
+				$str .= $alert['id'];
+
+				if ($alert !== end($this->alerts)){
+
+					$str .=",";
+				}
+			}
+
+			return $str;
+		}
+
+		function get_last_alert(){
+
+			$str = array_pop($this->alerts)['id'];
+			return $str;
+		}
+
+		private function set_iso_code($country){
+
+			// Values taken from web-interface/include/html/forms.agency.dialog.htm
+			$translation_table = [
+				"United States" => "US",
+				"Afghanistan" => "AF",
+				"Åland Islands" => "AX",
+				"Albania" => "AL",
+				"Algeria" => "DZ",
+				"American Samoa" => "AS",
+				"Andorra" => "AD",
+				"Angola" => "AO",
+				"Anguilla" => "AI",
+				"Antarctica" => "AQ",
+				"Antigua And Barbuda" => "AG",
+				"Argentina" => "AR",
+				"Armenia" => "AM",
+				"Aruba" => "AW",
+				"Australia" => "AU",
+				"Austria" => "AT",
+				"Azerbaijan" => "AZ",
+				"Bahamas" => "BS",
+				"Bahrain" => "BH",
+				"Bangladesh" => "BD",
+				"Barbados" => "BB",
+				"Belarus" => "BY",
+				"Belgium" => "BE",
+				"Belize" => "BZ",
+				"Benin" => "BJ",
+				"Bermuda" => "BM",
+				"Bhutan" => "BT",
+				"Bolivia" => "BO",
+				"Bonaire, Sint Eustatius and Saba" => "BQ",
+				"Bosnia and Herzegovina" => "BA",
+				"Botswana" => "BW",
+				"Bouvet Island" => "BV",
+				"Brazil" => "BR",
+				"British Indian Ocean Territory" => "IO",
+				"Brunei Darussalam" => "BN",
+				"Bulgaria" => "BG",
+				"Burkina Faso" => "BF",
+				"Burundi" => "BI",
+				"Cambodia" => "KH",
+				"Cameroon" => "CM",
+				"Canada" => "CA",
+				"Cape Verde" => "CV",
+				"Cayman Islands" => "KY",
+				"Central African Republic" => "CF",
+				"Chad" => "TD",
+				"Chile" => "CL",
+				"China" => "CN",
+				"Christmas Island" => "CX",
+				"Cocos (Keeling) Islands" => "CC",
+				"Colombia" => "CO",
+				"Comoros" => "KM",
+				"Congo" => "CG",
+				"Congo, the Democratic Republic of the" => "CD",
+				"Cook Islands" => "CK",
+				"Costa Rica" => "CR",
+				"Côte d'Ivoire" => "CI",
+				"Croatia" => "HR",
+				"Cuba" => "CU",
+				"Curaçao" => "CW",
+				"Cyprus" => "CY",
+				"Czech Republic" => "CZ",
+				"Denmark" => "DK",
+				"Djibouti" => "DJ",
+				"Dominica" => "DM",
+				"Dominican Republic" => "DO",
+				"Ecuador" => "EC",
+				"Egypt" => "EG",
+				"El Salvador" => "SV",
+				"Equatorial Guinea" => "GQ",
+				"Eritrea" => "ER",
+				"Estonia" => "EE",
+				"Ethiopia" => "ET",
+				"Falkland Islands (Malvinas)" => "FK",
+				"Faroe Islands" => "FO",
+				"Fiji" => "FJ",
+				"Finland" => "FI",
+				"France" => "FR",
+				"French Guiana" => "GF",
+				"French Polynesia" => "PF",
+				"French Southern Territories" => "TF",
+				"Gabon" => "GA",
+				"Gambia" => "GM",
+				"Georgia" => "GE",
+				"Germany" => "DE",
+				"Ghana" => "GH",
+				"Gibraltar" => "GI",
+				"Greece" => "GR",
+				"Greenland" => "GL",
+				"Grenada" => "GD",
+				"Guadeloupe" => "GP",
+				"Guam" => "GU",
+				"Guatemala" => "GT",
+				"Guernsey" => "GG",
+				"Guinea" => "GN",
+				"Guinea-Bissau" => "GW",
+				"Guyana" => "GY",
+				"Haiti" => "HT",
+				"Heard Island and McDonald Islands" => "HM",
+				"Holy See (Vatican City State)" => "VA",
+				"Honduras" => "HN",
+				"Hong Kong" => "HK",
+				"Hungary" => "HU",
+				"Iceland" => "IS",
+				"India" => "IN",
+				"Indonesia" => "ID",
+				"Iran, Islamic Republic of" => "IR",
+				"Iraq" => "IQ",
+				"Ireland" => "IE",
+				"Isle of Man" => "IM",
+				"Israel" => "IL",
+				"Italy" => "IT",
+				"Jamaica" => "JM",
+				"Japan" => "JP",
+				"Jersey" => "JE",
+				"Jordan" => "JO",
+				"Kazakhstan" => "KZ",
+				"Kenya" => "KE",
+				"Kiribati" => "KI",
+				"Korea, Democratic People's Republic of" => "KP",
+				"Korea, Republic of" => "KR",
+				"Kuwait" => "KW",
+				"Kyrgyzstan" => "KG",
+				"Lao People's Democratic Republic" => "LA",
+				"Latvia" => "LV",
+				"Lebanon" => "LB",
+				"Lesotho" => "LS",
+				"Liberia" => "LR",
+				"Libyan Arab Jamahiriya" => "LY",
+				"Liechtenstein" => "LI",
+				"Lithuania" => "LT",
+				"Luxembourg" => "LU",
+				"Macao" => "MO",
+				"Macedonia, The Former Yugoslav Republic Of" => "MK",
+				"Madagascar" => "MG",
+				"Malawi" => "MW",
+				"Malaysia" => "MY",
+				"Maldives" => "MV",
+				"Mali" => "ML",
+				"Malta" => "MT",
+				"Marshall Islands" => "MH",
+				"Martinique" => "MQ",
+				"Mauritania" => "MR",
+				"Mauritius" => "MU",
+				"Mayotte" => "YT",
+				"Mexico" => "MX",
+				"Micronesia, Federated States of" => "FM",
+				"Moldova, Republic of" => "MD",
+				"Monaco" => "MC",
+				"Mongolia" => "MN",
+				"Montenegro" => "ME",
+				"Montserrat" => "MS",
+				"Morocco" => "MA",
+				"Mozambique" => "MZ",
+				"Myanmar" => "MM",
+				"Namibia" => "NA",
+				"Nauru" => "NR",
+				"Nepal" => "NP",
+				"Netherlands" => "NL",
+				"New Caledonia" => "NC",
+				"New Zealand" => "NZ",
+				"Nicaragua" => "NI",
+				"Niger" => "NE",
+				"Nigeria" => "NG",
+				"Niue" => "NU",
+				"Norfolk Island" => "NF",
+				"Northern Mariana Islands" => "MP",
+				"Norway" => "NO",
+				"Oman" => "OM",
+				"Pakistan" => "PK",
+				"Palau" => "PW",
+				"Palestinian Territory, Occupied" => "PS",
+				"Panama" => "PA",
+				"Papua New Guinea" => "PG",
+				"Paraguay" => "PY",
+				"Peru" => "PE",
+				"Philippines" => "PH",
+				"Pitcairn" => "PN",
+				"Poland" => "PL",
+				"Portugal" => "PT",
+				"Puerto Rico" => "PR",
+				"Qatar" => "QA",
+				"Réunion" => "RE",
+				"Romania" => "RO",
+				"Russian Federation" => "RU",
+				"Rwanda" => "RW",
+				"Saint Barthélemy" => "BL",
+				"Saint Helena" => "SH",
+				"Saint Kitts and Nevis" => "KN",
+				"Saint Lucia" => "LC",
+				"Saint Martin (French Part)" => "MF",
+				"Saint Pierre and Miquelon" => "PM",
+				"Saint Vincent and the Grenadines" => "VC",
+				"Samoa" => "WS",
+				"San Marino" => "SM",
+				"Sao Tome and Principe" => "ST",
+				"Saudi Arabia" => "SA",
+				"Senegal" => "SN",
+				"Serbia" => "RS",
+				"Seychelles" => "SC",
+				"Sierra Leone" => "SL",
+				"Singapore" => "SG",
+				"Sint Maarten (Dutch Part)" => "SX",
+				"Slovakia" => "SK",
+				"Slovenia" => "SI",
+				"Solomon Islands" => "SB",
+				"Somalia" => "SO",
+				"South Africa" => "ZA",
+				"South Georgia and the South Sandwich Islands" => "GS",
+				"South Sudan" => "SS",
+				"Spain" => "ES",
+				"Sri Lanka" => "LK",
+				"Sudan" => "SD",
+				"Suriname" => "SR",
+				"Svalbard and Jan Mayen" => "SJ",
+				"Swaziland" => "SZ",
+				"Sweden" => "SE",
+				"Switzerland" => "CH",
+				"Syrian Arab Republic" => "SY",
+				"Taiwan, Province of China" => "TW",
+				"Tajikistan" => "TJ",
+				"Tanzania, United Republic of" => "TZ",
+				"Thailand" => "TH",
+				"Timor-Leste" => "TL",
+				"Togo" => "TG",
+				"Tokelau" => "TK",
+				"Tonga" => "TO",
+				"Trinidad and Tobago" => "TT",
+				"Tunisia" => "TN",
+				"Turkey" => "TR",
+				"Turkmenistan" => "TM",
+				"Turks and Caicos Islands" => "TC",
+				"Tuvalu" => "TV",
+				"Uganda" => "UG",
+				"Ukraine" => "UA",
+				"United Arab Emirates" => "AE",
+				"United Kingdom" => "GB",
+				"United States" => "US",
+				"United States Minor Outlying Islands" => "UM",
+				"Uruguay" => "UY",
+				"Uzbekistan" => "UZ",
+				"Vanuatu" => "VU",
+				"Venezuela" => "VE",
+				"Vietnam" => "VN",
+				"Virgin Islands, British" => "VG",
+				"Virgin Islands, U.S." => "VI",
+				"Wallis and Futuna" => "WF",
+				"Western Sahara" => "EH",
+				"Yemen" => "YE",
+				"Zambia" => "ZM",
+				"Zimbabwe" => "ZW",
+			];
+
+
+			// Perform a key lookup for tha value and save it
+			if (array_key_exists($country,$translation_table)){
+
+				$this->location['iso_code'] = $translation_table[$country]; 
+
+			} else {
+
+				die("There was a problem looking up this country: $country ". $this->name . $this->id);
+			}
+
+		}
+
+
+
+
+}
+
+
+
+
+?>
