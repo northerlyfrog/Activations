@@ -64,12 +64,6 @@ foreach ($agencies as $agency){
     $alert_string = $agency->get_alerts_to_string();
     $genes = $genome->get_genes_by_key('state',$agency->get_state());
 
-    // If we find no parsers in the state, check the country
-    if (strlen($genes) == 0) {
-
-      $genes = $genome->get_genes_by_key('iso_code',$agency->get_iso_code());
-    };
-
     // If the country is blank, manually check this agency.
     if (strlen($genes) == 0) {
 
@@ -79,7 +73,7 @@ foreach ($agencies as $agency){
     }else {
 			
 			// Define the command to check all the parsers against each alarm
-			$gene_cmd = "$gene_location scan $alert_string $genes";
+      $gene_cmd = "$gene_location scan $alert_string $genes";
 
 		}
 		// Run the command, decoding the results into JSON
@@ -99,33 +93,45 @@ foreach ($agencies as $agency){
       foreach ($gene_return as $key => $gene) {
 
         $number = 0;
-        $aggregate_score = 0;
-        $iterations = 0;
+				$aggregate_score = 0;
+				$total_iterations = count($agency->get_alerts());
+
         foreach ($gene as $alert){
 
-					$iterations++;
+          // SUCCESS denotes successful parsing
+					if (isset($alert['SUCCESS']) && !empty($alert['SUCCESS'])){
 
-					// SUCCESS denotes successful parsing
-          if (isset($alert['SUCCESS']) && !empty($alert['SUCCESS'])){
-            $number++;
-            $aggregate_score += $alert['SCORE'];
+						// Only look at real scores
+						if ($alert['SCORE'] >= 0){
 
-          }
+							$number++;
+							$aggregate_score += $alert['SCORE'];
+						}
 
-					// Successful parsing puts the parser in suggested_parsers
-          if ($number > 0){
-            $average_score = $aggregate_score / $number;
-
-            $average_success = $number / $iterations * 100;
-
-						$agency->save_suggested_parser($key.",Utility/General/Default",$average_score,$alert_string,$average_success);
-					} 
+					}
 				}
+
+				// Successful parsing puts the parser in suggested_parsers
+				if ($number > 0){
+					$average_score = $aggregate_score / $number;
+
+					$average_success = ($number / $total_iterations) * 100;
+
+					// Needs to be successful at least 85% of the time to be considered as a parser
+					if ($average_success > 65){
+
+						echo("$key was successful >65% of the time ($average_success).\n");
+						$agency->save_suggested_parser($key.",Utility/General/Default",$average_score,$alert_string,$average_success);
+					} else {
+						echo("$key was not successful >65% of the time ($average_success).\n");
+					}
+				} 
+
 			}
 
 			// Zero suggested parsers also means agency needs a parser
 			if (count($agency->get_suggested_parsers()) == 0){
-				
+
 				$needs_parser[] = $agency;
 
 			} else {
@@ -136,7 +142,7 @@ foreach ($agencies as $agency){
 
 		}
 
-	// No Tests yet
+		// No Tests yet
 	} else {
 		$abandoned[] = $agency;
 	}
@@ -150,7 +156,7 @@ $message .= "\r\nThere are ".count($has_parser)." agencies that need to be assig
 foreach ($has_parser as $name => $agency){
 
 	$message .= $agency->get_name().", ".$agency->get_id().", in ". $agency->get_city().", ". $agency->get_state()."\r\nSuggested parsers:\r\n";
- 
+
 	foreach($agency->get_suggested_parsers() as $parser => $values){
 
 		$message .=("     ".$parser." has an average success of ".$values['average_success']." and an average score of ".$values['score']."\r\n");
@@ -165,9 +171,9 @@ foreach ($needs_parser as $name => $agency){
 
 	$message .= $agency->get_name().", ".$agency->get_id().", in ". $agency->get_city().", ".$agency->get_state()."\r\nFound ".count($agency->get_alerts())." alarms\r\n";
 
-		if (count($agency->get_alerts()) > 8){
-			$message .=	"List of alarms:\r\n     ".$agency->get_alerts_to_string()."\r\n\r\n";
-		}
+	if (count($agency->get_alerts()) > 8){
+		$message .=	"List of alarms:\r\n  ".$agency->get_alerts_to_string()."\n\n";
+	}
 }
 
 // Last are the idle departments
@@ -194,7 +200,6 @@ $mysqli->close();
 
 
 
-
 /**
  * Send an email to one or more recipients
  *
@@ -206,7 +211,7 @@ $mysqli->close();
 function send_email($recipients, $subject, $body) {
 
 	require_once 'lib/swift/swift_required.php';
-	global $email_from_address,$smtp,$smtp_port;
+	global $email_from_address,$email_password,$smtp,$smtp_port;
 
 	// Create the message
 	$message=Swift_Message::newInstance()
@@ -215,10 +220,13 @@ function send_email($recipients, $subject, $body) {
 		->setTo($recipients)
 		->setBody($body);
 
+
+	$smtp_ip = gethostbyname($smtp);
 	// Create the transport
-	$transport = Swift_SmtpTransport::newInstance($smtp, $smtp_port);
-		//->setUsername('')
-		//->setPassword('');
+	$transport = Swift_SmtpTransport::newInstance($smtp_ip, $smtp_port,'ssl')
+		->setUsername($email_from_address)
+		->setPassword($email_password)
+		->setSourceIp('0.0.0.0');
 
 	// Create the mailer
 	$mailer = Swift_Mailer::newInstance($transport);
