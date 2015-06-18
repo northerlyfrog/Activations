@@ -101,8 +101,8 @@ foreach ($agencies as $agency){
           // SUCCESS denotes successful parsing
 					if (isset($alert['SUCCESS']) && !empty($alert['SUCCESS'])){
 
-						// Only look at real scores
-						if ($alert['SCORE'] >= 0){
+						// Zero denotes failure
+						if ($alert['SCORE'] != 0){
 
 							$number++;
 							$aggregate_score += $alert['SCORE'];

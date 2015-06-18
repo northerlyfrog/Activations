@@ -19,6 +19,7 @@ $gene_location = "/usr/local/polymerase/gene";
 $email_to = ['recipeint email','recipient email 2'];
 $email_subject = 'Your Daily Parser Report';
 $email_from_address = 'example@example.com';
+$email_password = '';
 $smtp = 'smtp.something.net';
 $smtp_port = 'number';
 ?>
